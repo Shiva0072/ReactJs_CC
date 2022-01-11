@@ -1,32 +1,41 @@
-import { useState } from "react";
-function App() {
-  const [val, setVal] = useState("");
-  const [todos, setTodos] = useState([]);
+import { useEffect, useState } from "react";
+import Coins from "./Coins";
 
-  const onChange = (event) => setVal((prev_val) => event.target.value);
-  const handleForm = (e) => {
-    e.preventDefault();
-    if (val === "") return;
-    setTodos((todos) => [val, ...todos]);
-    setVal((val) => "");
+function App() {
+  const [loading, setLoading] = useState(true);
+  const [coins, setCoins] = useState([]);
+  const [coinPrice, setCoinPrice] = useState(0);
+
+  useEffect(() => {
+    fetch("https://api.coinpaprika.com/v1/tickers")
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log(data);
+        setCoins(data);
+        setLoading(false);
+      });
+  }, []);
+
+  const onChange = (e) => {
+    const val = e.target.value;
+    setCoinPrice(val);
   };
 
   return (
     <div>
-      <p>Todo List</p>
-      <form onSubmit={handleForm}>
-        <input type="text" value={val} onChange={onChange}></input>
-        <button> Add Todo</button>
-      </form>
-      <hr />
-      <ul>
-        {todos.map((todo, index) => (
-          <li key={index}>{todo}</li>
+      <h1>Coins </h1>
+      {loading ? <strong>Loading..</strong> : ""}
+      <select onChange={onChange}>
+        {coins.map((coin) => (
+          <option key={coin.id} value={coin.quotes.USD.price}>
+            {coin.name} {coin.symbol} : ${coin.quotes.USD.price.toFixed(2)}
+          </option>
         ))}
-      </ul>
+      </select>
+      <hr />
+      {loading ? "" : <Coins price={coinPrice} />}
     </div>
   );
 }
 
 export default App;
-//each item returned by the map is a li-component and hence it is rendered by the react.
